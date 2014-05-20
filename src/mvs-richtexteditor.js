@@ -1,14 +1,65 @@
 /**
- * The basic inline text editor. Should not care about anything springpad.
+ * The basic inline text editor.
  * @module
  */
-define(['components/ColorChooser','css!/springpad/css/component.text-editor.css'], function(ColorChooser, css){
+function(window){
 
   "use strict";
 
-  var InlineTextEditor = {};
+  MooVeeStar.templates.register('color-chooser', '<section class="color-chooser"><ul></ul></section>');
 
-  InlineTextEditor.AddLinkPopup = new Class({
+  var ColorChooser = new Class({
+    Extends: MooVeeStar.View,
+
+    events: {
+      'window:click':'onWindowClick'
+    },
+
+    options: {
+      destroyOnChoose:true
+    },
+
+    template: 'color-chooser',
+
+    render: function(){
+      var list = this.element.getFirst().empty();
+      var colors = [
+        ['#000000', '#434343', '#656565', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#efefef', '#f3f3f3', '#FFFFFF'],
+        ['#b40000', '#ff0000', '#ff9000', '#ffff00', '#00ff00', '#00ffff', '#0086ea', '#0e00ff', '#b600ff', '#ff00ff'],
+        ['#f8b5af', '#ffc9cc', '#ffe4cc', '#fff2cb', '#d1ecd3', '#c8e0e3', '#c1daf9', '#c6e3f4', '#dcd1ea', '#f4cfdc'],
+        ['#fa7569', '#ff9298', '#ff9298', '#ffe597', '#a4d9a7', '#90c6ca', '#94c3f5', '#89c6e9', '#baa5d7', '#e6a1bd'],
+        ['#ee241e', '#ff5664', '#ffad67', '#ffd760', '#74c87c', '#56a7b0', '#4a9eec', '#42a9dd', '#9579c4', '#d973a0'],
+        ['#c30000', '#f10000', '#ff8b30', '#ffc023', '#31ac4c', '#00838f', '#0078d9', '#0087c7', '#7149a8', '#bf4179'],
+        ['#9c0105', '#b50000', '#cd5600', '#d08e00', '#007a19', '#00515d', '#0053ce', '#005495', '#3e1477', '#890047'],
+        ['#6c0000', '#7a0000', '#893900', '#8a5e00', '#005111', '#00363e', '#004588', '#003864', '#250d4e', '#5a022f']
+      ];
+      colors.forEach(function(rowColors){
+        var row = new Element('li').inject(list);
+        rowColors.forEach(function(color){
+          row.grab(new Element('button[data-color="'+color+'"][style="background-color:'+color+';"]'));
+        });
+      });
+    },
+
+    onWindowClick: function(e){
+      if(!e.target.getSelfOrParent('.color-chooser')){
+        this.destroy();
+        e.stop();
+      }else{
+        var color = e.target.get('data-color');
+        color && this.fireEvent('choose', { color:color });
+        if(this.options.destroyOnChoose)
+          this.destroy();
+      }
+    }
+
+  });
+
+
+
+  var RichTextEditor = window.RichTextEditor = {};
+
+  RichTextEditor.AddLinkPopup = new Class({
     Extends: MooVeeStar.View,
     template:'inline-editable-note-add-link-popup',
     events: {
@@ -86,7 +137,7 @@ define(['components/ColorChooser','css!/springpad/css/component.text-editor.css'
   });
 
 
-  InlineTextEditor.View = new Class({
+  RichTextEditor.View = new Class({
     Extends: MooVeeStar.View,
 
     events: {
@@ -276,7 +327,7 @@ define(['components/ColorChooser','css!/springpad/css/component.text-editor.css'
         if(self.selectedAnchorPopup){
           self.selectedAnchorPopup.model.set({ text:modelText, href:a.get('href') });
         }else{
-          self.selectedAnchorPopup = new InlineTextEditor.AddLinkPopup(
+          self.selectedAnchorPopup = new RichTextEditor.AddLinkPopup(
             { text:modelText, href:a.get('href'), edit:!a.get('href') || a.get('href') === 'http://' },
             {
               onApply: function(e){
@@ -586,6 +637,4 @@ define(['components/ColorChooser','css!/springpad/css/component.text-editor.css'
 
   });
 
-  return InlineTextEditor.View;
-
-});
+})(window);
